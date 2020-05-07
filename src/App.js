@@ -1,4 +1,4 @@
-import React from 'react';
+import React,{useEffect} from 'react';
 import { Switch, Route, Redirect } from 'react-router-dom';
 import { connect } from 'react-redux';
 import {createStructuredSelector} from "reselect"
@@ -11,63 +11,72 @@ import Header from './components/header/header.component';
 import { auth, createUserProfileDocument } from './firebase/firebase.utils';
 import { setCurrentUser } from './redux/user/user.action';
 import CheckOutPage from './pages/checkout/checkout.component'
-
-class App extends React.Component {
-  unsubscribeFromAuth = null;
-
-  componentDidMount() {
+import {checkUserSession} from './redux/user/user.action'
+import {selectIsLoading} from './redux/user/user.selectors'
+import StateSpinner from './components/with-spinner/state_call_spinner'
+const App = ({currentUser,checkUserSession,isLoading}) => {
+  
+  
+  // componentDidMount() {
     
-    const { setCurrentUser } = this.props;
+  //   const { setCurrentUser } = this.props;
 
-    this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
-      if (userAuth) {
-        const userRef = await createUserProfileDocument(userAuth);
+  //   this.unsubscribeFromAuth = auth.onAuthStateChanged(async userAuth => {
+  //     if (userAuth) {
+  //       const userRef = await createUserProfileDocument(userAuth);
 
-        userRef.onSnapshot(snapShot => {
-          console.log(snapShot);
-          setCurrentUser({
-            id: snapShot.id,
-            ...snapShot.data()
-          });
-        });
-      }
+  //       userRef.onSnapshot(snapShot => {
+  //         console.log(snapShot);
+  //         setCurrentUser({
+  //           id: snapShot.id,
+  //           ...snapShot.data()
+  //         });
+  //       });
+  //     }
 
-      setCurrentUser(userAuth);//sets to null
+  //     setCurrentUser(userAuth);//sets to null
       
-    });
+  //   });
     
-  }
+  // }
+    useEffect(() => {
+      checkUserSession();
+    },[checkUserSession])
 
-  componentWillUnmount() {
-    this.unsubscribeFromAuth();
-  }
-
-  render() {
+ 
     return (
       <div>
-        <Header />
+        {
+
+        isLoading? (<StateSpinner/>): 
+        
+          (<div>
+          <Header />
         <Switch>
           <Route exact path='/' component={HomePage} />
           <Route path='/shop' component={ShopPage} />
           <Route exact path='/signin' 
-          render={() =>this.props.currentUser ? 
+          render={() =>currentUser ? 
           (<Redirect to = "/"/>)
           : (<SignInAndSignUpPage/>) }/>
           <Route exact path = '/checkout' component = {CheckOutPage}/>
         </Switch>
+        
+          </div>)
+        }  
       </div>
     );
   }
-}
+
 
 
 const mapDispatchToProps = dispatch => ({
-  setCurrentUser: user => dispatch(setCurrentUser(user))
+  checkUserSession: () => dispatch(checkUserSession())
   
 });
 const mapStateToProps =createStructuredSelector ({
   currentUser: selectCurrentUser,
-  
+  isLoading: selectIsLoading
 });
 
 export default connect(
