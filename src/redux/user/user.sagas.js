@@ -23,7 +23,11 @@ export function* isUserAuthenticated(){
     yield put(toggleLoading()); 
     try{
         const userAuth = yield getCurrentUser();
-        if(!userAuth) return;
+        if(!userAuth) {
+            yield put(toggleLoading());
+            return
+           
+        };
         yield getSnapshotFromUserAuth(userAuth);
         yield put(toggleLoading());
      }catch(error){
@@ -78,8 +82,8 @@ export function* onSignOutStart(){
 
 export function* signUp({payload: {email,password,displayName}}){
 try{
-       console.log(email);
-       console.log(password); 
+     yield put(toggleLoading());  
+     
        const {user} = yield auth.createUserWithEmailAndPassword(email,password);
         const userRef = yield createUserProfileDocument(user,{displayName});
         const userSnapshot = yield userRef.get();
@@ -87,8 +91,11 @@ try{
             id: userSnapshot.id,
             ...userSnapshot.data()
         }));
+        yield put(toggleLoading());
     
 }catch(error){
+    console.log(error);
+    yield put(toggleLoading());
     signUpFailure(error)
 }
 }
