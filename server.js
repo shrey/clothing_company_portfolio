@@ -19,6 +19,7 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'client/build')));
 
   app.get('*', function(req, res) {
+    console.log("sending file");
     res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
   });
 }
@@ -29,6 +30,7 @@ app.listen(port, error => {
 });
 
 app.post('/payment', (req, res) => {
+  
   const body = {
     source: req.body.token.id,
     amount: req.body.amount,
